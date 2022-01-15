@@ -416,5 +416,26 @@
 
 
 ;; My solution to 4Clojure problem #75.
+(defn totient [n]
+  (let [get-greatest-common-divisor (fn [a b] 
+                                      (->> (max a b)
+                                           (range 1)
+                                           (reverse)
+                                           (drop-while #(not (= 0 (mod a %) (mod b %))))
+                                           (first)))
+        is-coprime? (fn [a b] (= 1 (get-greatest-common-divisor a b)))]
+      (cond 
+        (< n 1) 0
+        (= n 1) 1
+        (> n 1) (->> (range 1 n)
+                     (map #(is-coprime? % n))
+                     (filter true?)
+                     (count)))))
 
+(= (totient 1) 1)
+(= (totient 10) (count '(1 3 7 9)) 4)
+(= (totient 40) 16)
+(= (totient 99) 60)
+
+;; My solution to 4Clojure problem #76.
 
