@@ -498,3 +498,239 @@
 
 ;; My solution to 4Clojure problem #79.
 
+; Steps
+; - Method to build paths that include the next level of the tree.
+; - Method to build all paths of a tree for height h.
+; - Method to fetch all values along a path on a tree.
+; - Get all paths.
+; - Get the value combination for each path.
+; - Get the sums of each value combination.
+; - Get minimum of these sums.
+;
+(defn process-tree [tree]
+  (letfn [(next-level-paths [paths]
+            (let [updated-paths (for [path paths]
+                                  (let [last-path (last path)]
+                                    ;(println "path: " path)
+                                    ;(println "last-path: " last-path)
+                                    ;(println "inc last-path: " (inc last-path))
+                                    [(conj path last-path) (conj path (inc last-path))]))]
+              ;(println "updated-paths: " updated-paths)
+              ;(println "apply concat updated-paths: " (apply concat updated-paths))
+              (apply concat updated-paths)
+              ))
+          (all-paths [tree-height]
+            (nth (iterate next-level-paths [[0]]) (dec tree-height)))
+          (values-along-path [tree path]
+            (map nth tree path)
+            )
+          ]
+    ;(println "all-paths[1]: " (all-paths 1))
+    ;(println "all-paths[2]: " (all-paths 2))
+    ;(nth (iterate next-level-paths [[0]]) 0)
+    ;(nth (iterate next-level-paths [[0]]) 1)
+    ;(nth (iterate next-level-paths [[0]]) 2)
+    ;(nth (iterate next-level-paths [[0]]) 3)
+
+    (->> (count tree)
+      ; Get all paths for a tree height.
+      (all-paths)
+      ; Get all potential value sequences for all paths.
+      (map (partial values-along-path tree))
+      ; Compute the sum of each of those value sequences.
+      (map #(apply + %))
+      ; Get the minmium sum.
+      (apply min)
+      )))
+
+(let [tree [[1]
+           [9 4]]
+      ]
+  (process-tree tree))
+
+(= (process-tree [   [1]
+                    [2 4]
+                   [5 1 4]
+                  [2 3 4 5]])
+   (+ 1 2 1 3)
+   7)
+
+(= (process-tree [     [3]
+                      [2 4]
+                     [1 9 3]
+                    [9 9 2 4]
+                   [4 6 6 7 8]
+                  [5 7 3 5 1 4]])
+    (+ 3 4 3 2 7 1)
+    20)
+
+;; Solution that I found the easiest to understand. 
+(def process-triangle
+  (letfn [(next-steps [paths]
+            (apply concat
+                   (for [path paths, :let [last-step (last path)]]
+                     [(conj path last-step) 
+                      (conj path (inc last-step))]
+                     )))
+          (all-paths [length]
+            (nth (iterate next-steps [[0]]) (dec length)))
+          (values-along-path [triangle path]
+            (map nth triangle path))]
+    (fn [triangle]
+      (let [paths         (all-paths (count triangle))
+            values        (map (partial values-along-path triangle) paths)
+            summed-values (map (partial apply +) values)]
+        ;(println "all-paths: " paths)
+        ;(println "values: " values)
+        ;(println "summed-values: " summed-values)
+        (apply min summed-values)))))
+
+
+(def empty-seq '())
+(def nil-seq nil)
+(def empty-vector [])
+(def nil-vector nil)
+
+(if empty-seq true false)
+(if empty-vector true false)
+(if nil-seq true false)
+(if nil-vector true false)
+(if-not (empty? empty-seq) true false)
+(if-not (empty? empty-vector) true false)
+(if-not nil-seq true false)
+(if-not nil-vector true false)
+(empty? nil-seq)
+(empty? nil-vector)
+(empty? nil)
+
+(keyword "3")
+
+(for [n (range (count tree))]
+  [x y])
+
+
+;; My solution to 4Clojure problem #80
+(defn perfect-number? [n]
+  (let [is-divisor (fn [n t] (= 0 (mod n t)))]
+    (->> (range 1 n)
+         (filter #(is-divisor n %))
+         (apply +)
+         (= n))))
+
+(= (perfect-number? 6) true)
+(= (perfect-number? 7) false)
+(= (perfect-number? 496) true)
+(= (perfect-number? 500) false)
+(= (perfect-number? 8128) true)
+
+;; My solution to 4Clojure problem #81
+(defn my-intersection [set1 set2]
+  (set (filter #(contains? set2 %) set1)))
+
+(= (my-intersection #{0 1 2 3} #{2 3 4 5}) #{2 3})
+(= (my-intersection #{0 1 2} #{3 4 5}) #{})
+(= (my-intersection #{:a :b :c :d} #{:c :e :a :f :d}) #{:a :c :d})
+
+;; My solution to 4Clojure problem #82.  (Effort made, but not solved).
+;; I realized after writing this below that reordering of characters is not allowed between words.  So the solution fails test case 3.
+
+(defn contains-word-chain? [word-set]
+  (letfn [(word-chain? [word1 word2]
+            (loop [word1freq (frequencies word1)
+                   word2freq (frequencies word2)
+                   letter-count-in-word1-not-in-word2 0
+                   letter-count-in-word2-not-in-word1 0]
+              ; (println "TOP of count-diff loop."
+              ;          "word1freq:" word1freq
+              ;          "word2freq:" word2freq
+              ;          "letter-count-in-word1-not-in-word2:" letter-count-in-word1-not-in-word2
+              ;          "letter-count-in-word2-not-in-word1:" letter-count-in-word2-not-in-word1)
+              (let [is-word-chain-so-far 
+                    (if (or (= 1 letter-count-in-word1-not-in-word2 letter-count-in-word2-not-in-word1)
+                            (and (= 1 letter-count-in-word1-not-in-word2) (= 0 letter-count-in-word2-not-in-word1))
+                            (and (= 0 letter-count-in-word1-not-in-word2) (= 1 letter-count-in-word2-not-in-word1)))
+                      true
+                      false)]
+                (cond 
+                  (and (empty? word1freq) (empty? word2freq)) is-word-chain-so-far
+                  (and (empty? word1freq) (not (empty? word2freq))) (recur word2freq word1freq letter-count-in-word2-not-in-word1 letter-count-in-word1-not-in-word2)
+                  :else (let [[k v1] (first word1freq)
+                              v2 (if (contains? word2freq k) (word2freq k) 0)]
+                          ; (println "k:" k "v1:" v1 "v2:" v2)
+                          (cond 
+                            (= v1 v2) (recur (dissoc word1freq k) (dissoc word2freq k) letter-count-in-word1-not-in-word2 letter-count-in-word2-not-in-word1)
+                            (< v1 v2) (recur (dissoc word1freq k) (dissoc word2freq k) letter-count-in-word1-not-in-word2 (+ (- v2 v1) letter-count-in-word2-not-in-word1))
+                            (> v1 v2) (recur (dissoc word1freq k) (dissoc word2freq k) (+ (- v1 v2) letter-count-in-word1-not-in-word2) letter-count-in-word2-not-in-word1)
+                            ))))))
+          (is-word-chain [word-seq]
+            ; (println "Examining for a word chain: " word-seq)
+            (loop [words word-seq]
+              (if (<= (count words) 1)
+                (do 
+                  ; (println "Result: true")
+                  true)
+                (let [test-next-two-words (word-chain? (first words) (second words))]
+                  ; (println "test-next-two-words:" test-next-two-words)
+                  (if test-next-two-words
+                    (recur (rest words))
+                    (do 
+                      ; (println "Result: false")
+                      false))
+                  )
+                )))
+          (get-permutations [s]
+            (lazy-seq
+              (if (seq (rest s))
+                (apply concat (for [x s]
+                                (map #(cons x %) (get-permutations (remove #{x} s)))))
+                [s])))
+          ]
+    ; (println "word1:" word1 "word2:" word2 "diff-count:" (count-diff word1 word2))
+    (let [permutations (get-permutations word-set)
+          word-chains (filter is-word-chain permutations)
+          final-result (not (empty? word-chains))]
+      ; (println "permutations" permutations)
+      ; (println "word chains: " word-chains)
+      ; (println "final result: " final-result)
+      final-result)))
+
+(contains-word-chain? #{"dot" "pot"})
+
+(contains-word-chain? #{"do"})
+(contains-word-chain? #{"do" "dot"})
+(contains-word-chain? #{"do" "dot" "pot"})
+(contains-word-chain? #{"do" "dot" "pot" "spot"})
+(contains-word-chain? #{"do" "dot" "pot" "spot" "pout"})
+(contains-word-chain? #{"do" "dot" "pot" "spot" "pout" "spout"})
+
+(= true (contains-word-chain? #{"hat" "coat" "dog" "cat" "oat" "cot" "hot" "hog"}))
+(= false (contains-word-chain? #{"cot" "hot" "bat" "fat"}))
+(= false (contains-word-chain? #{"to" "top" "stop" "tops" "toss"}))
+(= true (contains-word-chain? #{"spout" "do" "pot" "pout" "spot" "dot"}))
+(= true (contains-word-chain? #{"share" "hares" "shares" "hare" "are"}))
+(= false (contains-word-chain? #{"share" "hares" "hare" "are"}))
+
+
+(let [[k v1] (first (frequencies "ryan"))]
+  (println "k:" k ", v1:" v1)
+  ((frequencies "ryanr") k)
+  )
+(first (frequencies "ryan"))
+(frequencies "ryana")
+
+;; My solution to 4Clojure problem #83.
+(defn problem-83 [& bools]
+  (if (and (contains? (set bools) true) (not (= #{true} (set bools)))) true false))
+
+(= false (problem-83 false false))
+(= true (problem-83 true false))
+(= false (problem-83 true))
+(= true (problem-83 false true false))
+(= false (problem-83 true true true))
+(= true (problem-83 true true true false))
+
+;; My solution to 4Clojure problem #84.  (Not solved).
+
+;; My solution to 4Clojure problem #85.
+
+
