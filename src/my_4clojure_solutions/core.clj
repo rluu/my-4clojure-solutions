@@ -437,5 +437,64 @@
 (= (totient 40) 16)
 (= (totient 99) 60)
 
-;; My solution to 4Clojure problem #76.
+;; My solution to 4Clojure problem #77.
+(defn anagrams [words]
+  (loop [m {}
+         remaining-words words]
+    (if (not (empty? remaining-words))
+      (let [str-to-char-set #(into #{} %)
+            word (first remaining-words)
+            k (str-to-char-set word)
+            anagram-word-set (if (nil? (m k)) #{} (m k))]
+        (recur (assoc m k (conj anagram-word-set word)) (rest remaining-words)))
+      ; Return results.
+      (->> m
+        (map (fn [[k v]] v))
+        (filter #(> (count %) 1))
+        (set)))))
+
+(= (anagrams ["meat" "mat" "team" "mate" "eat"])
+    #{#{"meat" "team" "mate"}})
+
+(= (anagrams ["veer" "lake" "item" "kale" "mite" "ever"])
+    #{#{"veer" "ever"} #{"lake" "kale"} #{"mite" "item"}})
+
+(defn better-anagrams [words]
+  (->>
+    (group-by frequencies words)
+    (map (fn [[k v]] (set v)))
+    (filter #(> (count %) 1))
+    (set)))
+
+(doc frequencies)
+(group-by frequencies ["meat" "mat" "team" "mate" "eat"])
+
+(= (better-anagrams ["meat" "mat" "team" "mate" "eat"])
+    #{#{"meat" "team" "mate"}})
+
+(= (better-anagrams ["veer" "lake" "item" "kale" "mite" "ever"])
+    #{#{"veer" "ever"} #{"lake" "kale"} #{"mite" "item"}})
+
+;; My solution to 4Clojure problem #78.
+(doc trampoline)
+(fn?)
+
+(defn my-trampoline
+  ([f] (if (fn? f) (recur (f)) f))
+  ([f & args] (loop [rv (if (fn? f) (apply f args) f)]
+                (if (fn? rv) (recur (rv)) rv))))
+
+
+(= (letfn [(triple [x] #(sub-two (* 3 x)))
+           (sub-two [x] #(stop?(- x 2)))
+           (stop? [x] (if (> x 50) x #(triple x)))]
+     (my-trampoline triple 2))
+   82)
+
+(= (letfn [(my-even? [x] (if (zero? x) true #(my-odd? (dec x))))
+           (my-odd? [x] (if (zero? x) false #(my-even? (dec x))))]
+     (map (partial my-trampoline my-even?) (range 6)))
+   [true false true false true false])
+
+;; My solution to 4Clojure problem #79.
 
