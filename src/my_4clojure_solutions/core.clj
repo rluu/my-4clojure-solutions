@@ -22,7 +22,7 @@
                    (rest remaining))
             (if (> v last-v)
               (if (< (count longest) (inc (count curr)))
-                (recur (conj curr v) 
+                (recur (conj curr v)
                        (conj curr v)
                        v
                        (rest remaining))
@@ -350,7 +350,7 @@
 ;; My solution to 4Clojure problem #73.
 (defn get-tic-tac-toe-winner [board]
   (let [get-winner (fn [row]
-                     (if (and (not= :e (first row)) 
+                     (if (and (not= :e (first row))
                               (= (first row) (second row) (last row)))
                        (first row)
                        nil))
@@ -397,6 +397,9 @@
 
 
 ;; My solution to 4Clojure problem #74.
+;;
+;; Note: This solution doesn't work in clojurescript.
+;; To make it work, replace 'Integer/parseInt' with 'js/parseInt'.
 (defn string-squares [input-str]
   (as-> input-str v
     (clojure.string/split v #",")
@@ -417,14 +420,14 @@
 
 ;; My solution to 4Clojure problem #75.
 (defn totient [n]
-  (let [get-greatest-common-divisor (fn [a b] 
+  (let [get-greatest-common-divisor (fn [a b]
                                       (->> (max a b)
                                            (range 1)
                                            (reverse)
                                            (drop-while #(not (= 0 (mod a %) (mod b %))))
                                            (first)))
         is-coprime? (fn [a b] (= 1 (get-greatest-common-divisor a b)))]
-      (cond 
+      (cond
         (< n 1) 0
         (= n 1) 1
         (> n 1) (->> (range 1 n)
@@ -564,12 +567,12 @@
     (+ 3 4 3 2 7 1)
     20)
 
-;; Solution that I found the easiest to understand. 
+;; Solution that I found the easiest to understand.
 (def process-triangle
   (letfn [(next-steps [paths]
             (apply concat
                    (for [path paths, :let [last-step (last path)]]
-                     [(conj path last-step) 
+                     [(conj path last-step)
                       (conj path (inc last-step))]
                      )))
           (all-paths [length]
@@ -645,19 +648,19 @@
               ;          "word2freq:" word2freq
               ;          "letter-count-in-word1-not-in-word2:" letter-count-in-word1-not-in-word2
               ;          "letter-count-in-word2-not-in-word1:" letter-count-in-word2-not-in-word1)
-              (let [is-word-chain-so-far 
+              (let [is-word-chain-so-far
                     (if (or (= 1 letter-count-in-word1-not-in-word2 letter-count-in-word2-not-in-word1)
                             (and (= 1 letter-count-in-word1-not-in-word2) (= 0 letter-count-in-word2-not-in-word1))
                             (and (= 0 letter-count-in-word1-not-in-word2) (= 1 letter-count-in-word2-not-in-word1)))
                       true
                       false)]
-                (cond 
+                (cond
                   (and (empty? word1freq) (empty? word2freq)) is-word-chain-so-far
                   (and (empty? word1freq) (not (empty? word2freq))) (recur word2freq word1freq letter-count-in-word2-not-in-word1 letter-count-in-word1-not-in-word2)
                   :else (let [[k v1] (first word1freq)
                               v2 (if (contains? word2freq k) (word2freq k) 0)]
                           ; (println "k:" k "v1:" v1 "v2:" v2)
-                          (cond 
+                          (cond
                             (= v1 v2) (recur (dissoc word1freq k) (dissoc word2freq k) letter-count-in-word1-not-in-word2 letter-count-in-word2-not-in-word1)
                             (< v1 v2) (recur (dissoc word1freq k) (dissoc word2freq k) letter-count-in-word1-not-in-word2 (+ (- v2 v1) letter-count-in-word2-not-in-word1))
                             (> v1 v2) (recur (dissoc word1freq k) (dissoc word2freq k) (+ (- v1 v2) letter-count-in-word1-not-in-word2) letter-count-in-word2-not-in-word1)
@@ -666,14 +669,14 @@
             ; (println "Examining for a word chain: " word-seq)
             (loop [words word-seq]
               (if (<= (count words) 1)
-                (do 
+                (do
                   ; (println "Result: true")
                   true)
                 (let [test-next-two-words (word-chain? (first words) (second words))]
                   ; (println "test-next-two-words:" test-next-two-words)
                   (if test-next-two-words
                     (recur (rest words))
-                    (do 
+                    (do
                       ; (println "Result: false")
                       false))
                   )
@@ -746,6 +749,9 @@
 (= (count (power-set (into #{} (range 10)))) 1024)
 
 ;; My solution to 4Clojure problem #86.
+;;
+;; Note: This solution doesn't work in clojurescript.
+;; To make it work, replace 'Integer/parseInt' with 'js/parseInt'.
 (defn happy-number? [input-val]
   (let [digits (fn [v] (map #(Integer/parseInt %) (re-seq #"\d" (str v))))]
     (loop [v input-val
@@ -804,5 +810,258 @@
 ;; My solution to 4Clojure problem #92.  (Not solved).
 
 ;; My solution to 4Clojure problem #93.
+(defn flatten-partially [input]
+  (letfn [(is-nested? [xs] (and (sequential? xs) (sequential? (first xs))))]
+    (if (is-nested? input)
+      (mapcat flatten-partially input)
+      (list input))))
 
+(= (flatten-partially [["Do"] ["Nothing"]])
+    [["Do"] ["Nothing"]])
+
+(= (flatten-partially [[[[:a :b]]] [[:c :d]] [:e :f]])
+    [[:a :b] [:c :d] [:e :f]])
+
+(= (flatten-partially '((1 2)((3 4)((((5 6)))))))
+    '((1 2)(3 4)(5 6)))
+
+(if (first nil)
+  true
+  false)
+(sequential? nil)
+
+(sequential? [])
+(sequential? '())
+(true? nil)
+(seq? "ryan")
+(flatten [[[[:a :b]]] [[:c :d]] [:e :f]])
+(def input [[[[[:a :b]] [:g :h]] [:x :y]] [[:c :d]] [:e :f]])
+
+(first input)
+(rest input)
+(first (first input))
+(rest (first input))
+
+(map #(vector (* 2 %)) [1 2 3 4 5])
+
+(seq? ["Do"])
+(sequential? ["Do"])
+(vector? [])
+(list? '())
+(coll? '())
+(coll? [])
+(seq? [])
+(seq? '())
+(rest input)
+
+;; My solution to 4Clojure problem #94.  (Not solved).
+
+;; My solution to 4Clojure problem #95.
+(defn is-binary-tree? [lst]
+  (and
+    (sequential? lst)
+    (= (count lst) 3)
+    (some? (first lst))
+    (if (nil? (second lst))
+      true
+      (is-binary-tree? (second lst)))
+    (if (nil? (nth lst 2))
+      true
+      (is-binary-tree? (nth lst 2)))))
+
+(= (is-binary-tree? '(:a (:b nil nil) nil))
+    true)
+(= (is-binary-tree? '(:a (:b nil nil)))
+    false)
+(= (is-binary-tree? [1 nil [2 [3 nil nil] [4 nil nil]]])
+    true)
+(= (is-binary-tree? [1 [2 nil nil] [3 nil nil] [4 nil nil]])
+    false)
+(= (is-binary-tree? [1 [2 [3 [4 nil nil] nil] nil] nil])
+    true)
+(= (is-binary-tree? [1 [2 [3 [4 false nil] nil] nil] nil])
+    false)
+(= (is-binary-tree? '(:a nil ()))
+    false)
+
+
+;; My solution to 4Clojure problem #96.
+(defn is-binary-tree-symmetric? [lst]
+  (letfn [(is-binary-tree? [lst]
+            (and
+              (sequential? lst)
+              (= (count lst) 3)
+              (some? (first lst))
+              (if (nil? (second lst))
+                true
+                (is-binary-tree? (second lst)))
+              (if (nil? (nth lst 2))
+                true
+                (is-binary-tree? (nth lst 2)))))
+          (right-leaf-first-traversal [lst]
+            (if (nil? lst)
+              [nil]
+              [(first lst) (right-leaf-first-traversal (nth lst 2)) (right-leaf-first-traversal (second lst))]))
+          (left-leaf-first-traversal [lst]
+            (if (nil? lst)
+              [nil]
+              [(first lst) (left-leaf-first-traversal (second lst)) (left-leaf-first-traversal (nth lst 2))]))
+          ]
+    (if-not (is-binary-tree? lst)
+      (do
+        (println "Not a binary tree!")
+        false)
+      (let [root lst
+            flattened-l (flatten (left-leaf-first-traversal (second lst)))
+            flattened-r (flatten (right-leaf-first-traversal (nth lst 2)))]
+        ; (println "flattened-l" flattened-l)
+        ; (println "flattened-r" flattened-r)
+        (= flattened-l flattened-r)))))
+
+(= (is-binary-tree-symmetric? '(:a (:b nil nil) (:b nil nil))) true)
+(= (is-binary-tree-symmetric? '(:a (:b nil nil) nil)) false)
+(= (is-binary-tree-symmetric? '(:a (:b nil nil) (:c nil nil))) false)
+(= (is-binary-tree-symmetric? [1 [2 nil [3 [4 [5 nil nil] [6 nil nil]] nil]]
+                                 [2 [3 nil [4 [6 nil nil] [5 nil nil]]] nil]])
+   true)
+
+(= (is-binary-tree-symmetric? [1 [2 nil [3 [4 [5 nil nil] [6 nil nil]] nil]]
+                                 [2 [3 nil [4 [5 nil nil] [6 nil nil]]] nil]])
+   false)
+(= (is-binary-tree-symmetric? [1 [2 nil [3 [4 [5 nil nil] [6 nil nil]] nil]]
+                                 [2 [3 nil [4 [6 nil nil] nil]] nil]])
+    false)
+
+(first [1])
+(second [1])
+(nth [1] 2)
+(take 3 (repeatedly #(identity true)))
+
+;; My solution to 4Clojure problem #97.
+(defn pascals-triangle [level]
+  (letfn [(is-last-index [coll index]
+            (and (< index (count coll))
+                 (= index (dec (count coll)))))
+          (build-next-row [prev-row]
+            (let [middle (remove nil? (for [i (range (count prev-row))]
+                                        (if-not (is-last-index prev-row i)
+                                          (+ (nth prev-row i) (nth prev-row (inc i))))))]
+              (apply vector (concat [1] middle [1]))))
+          ]
+    (cond
+      (< level 1) []
+      (= level 1) [1]
+      :else (build-next-row (pascals-triangle (dec level))))
+  ))
+
+(= (pascals-triangle 1) [1])
+
+(= (map pascals-triangle (range 1 6))
+   [     [1]
+        [1 1]
+       [1 2 1]
+      [1 3 3 1]
+     [1 4 6 4 1]])
+
+(= (pascals-triangle 11)
+   [1 10 45 120 210 252 210 120 45 10 1])
+
+(empty? nil)
+
+;; My solution to 4Clojure problem #98.
+(defn equivalence-classes [f input-set]
+  (set
+    (for [[k v] (group-by f input-set)]
+      (into #{} v))))
+
+(= (equivalence-classes #(* % %) #{-2 -1 0 1 2})
+    #{#{0} #{1 -1} #{2 -2}})
+
+(= (equivalence-classes #(rem % 3) #{0 1 2 3 4 5 })
+    #{#{0 3} #{1 4} #{2 5}})
+
+(= (equivalence-classes identity #{0 1 2 3 4})
+    #{#{0} #{1} #{2} #{3} #{4}})
+
+(= (equivalence-classes (constantly true) #{0 1 2 3 4})
+    #{#{0 1 2 3 4}})
+
+;; My solution to 4Clojure problem #99.
+(defn multiply-and-get-digits [x y]
+  (letfn [(get-digits [v]
+            (if (= v 0)
+              []
+              (conj (get-digits (int (/ v 10))) (mod v 10))))]
+    (get-digits (* x y))
+    )
+  )
+
+(= (multiply-and-get-digits 1 1) [1])
+(= (multiply-and-get-digits 99 9) [8 9 1])
+(= (multiply-and-get-digits 999 99) [9 8 9 0 1])
+
+
+;; My solution to 4Clojure problem #100
+;;
+;; Note: This solution doesn't seem to work in clojurescript.
+;; It seems to make the browser hang.  Probably because it is
+;; evaluating the ratios/fractions as irrational numbers.
+(defn least-common-multiple [& args]
+  (letfn [(is-multiple [testval & args]
+            (empty? (filter false? (map #(= 0 (mod testval %)) args))))]
+    (loop [curr (apply min args)]
+      (if (not (apply (partial is-multiple curr) args))
+        (recur (+ curr (apply min args)))
+        curr))))
+
+(== (least-common-multiple 2 3) 6)
+(== (least-common-multiple 5 3 7) 105)
+(== (least-common-multiple 1/3 2/5) 2)
+(== (least-common-multiple 3/4 1/6) 3/2)
+(== (least-common-multiple 7 5/7 2 3/5) 210)
+
+(* 1/3 2/5)
+
+;; My solution to 4Clojure problem #101.  (Not solved).
+
+;; My solution to 4Clojure problem #102.
+(defn into-camelcase [input-str]
+  (letfn [(convert-after-hyphen-chars-to-capital-letter [word]
+            (let [word-length (count word)
+                  characters (for [i (range word-length)]
+                               (let [c (get word i)
+                                     c-str (apply str [c])
+                                     c-str-uppercase (clojure.string/upper-case c-str)
+                                     c-uppercase (first c-str-uppercase)]
+                                 (if (and (> i 0)
+                                          (= \- (get word (dec i))))
+                                   c-uppercase
+                                   c)))]
+              (->> characters
+                 (filter some?)
+                 (apply str))))]
+    (->> input-str
+      (convert-after-hyphen-chars-to-capital-letter)
+      (filter #(not= \- %))
+      (apply str))))
+
+(= (into-camelcase "something") "something")
+(= (into-camelcase "multi-word-key") "multiWordKey")
+(= (into-camelcase "leaveMeAlone") "leaveMeAlone")
+
+;; Character byte operations work on the JVM, but not in Javascript.
+(char (+ 1 (byte (get "ryan" 1))))
+(byte \a) ;; 97
+(byte \z) ;; 122
+(byte \A) ;; 65
+(byte \Z) ;; 90
+(char (- (byte \a) 32)) ;; Turn \a to \A.
+
+(let [word (apply str '(\r \y \a \n))] ;; Convert charcter sequence to str.
+  (filter #(= \r %) word) ;; Filter characters in word.
+)
+
+(first "ryan") ;; Return first character of a string.
+
+;; My solution to 4Clojure problem #103.
 
