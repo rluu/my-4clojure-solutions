@@ -732,5 +732,77 @@
 ;; My solution to 4Clojure problem #84.  (Not solved).
 
 ;; My solution to 4Clojure problem #85.
+(defn power-set [input-set]
+  (if (empty? input-set)
+    #{#{}}
+    (let [ps (power-set (rest input-set))
+          first-value (first input-set)]
+      (into ps (map #(conj % first-value) ps)))))
+
+(= (power-set #{1 :a}) #{#{1 :a} #{:a} #{} #{1}})
+(= (power-set #{}) #{#{}})
+(= (power-set #{1 2 3})
+    #{#{} #{1} #{2} #{3} #{1 2} #{1 3} #{2 3} #{1 2 3}})
+(= (count (power-set (into #{} (range 10)))) 1024)
+
+;; My solution to 4Clojure problem #86.
+(defn happy-number? [input-val]
+  (let [digits (fn [v] (map #(Integer/parseInt %) (re-seq #"\d" (str v))))]
+    (loop [v input-val
+           prev-computations #{}]
+      ; (println "v" v "prev-computations" prev-computations)
+      (if (= v 1)
+        true
+        (if (contains? prev-computations v)
+          false
+          (as-> (digits v) x
+            (map #(* % %) x)
+            (reduce + x)
+            (recur x (conj prev-computations v))))))))
+
+(happy-number? 1)
+(= (happy-number? 7) true)
+(= (happy-number? 986543210) true)
+(= (happy-number? 2) false)
+(= (happy-number? 3) false)
+
+
+;; My solution to 4Clojure problem #87.  (Not solved).
+
+;; My solution to 4Clojure problem #88.
+(defn my-diff [set1 set2]
+  (clojure.set/union
+    (clojure.set/difference set1 set2)
+    (clojure.set/difference set2 set1)))
+
+(= (my-diff #{1 2 3 4 5 6} #{1 3 5 7}) #{2 4 6 7})
+(= (my-diff #{:a :b :c} #{}) #{:a :b :c})
+(= (my-diff #{} #{4 5 6}) #{4 5 6})
+(= (my-diff #{[1 2] [2 3]} #{[2 3] [3 4]}) #{[1 2] [3 4]})
+
+;; My solution to 4Clojure problem #89.  (Not solved).
+
+;; My solution to 4Clojure problem #90.
+(defn cartesian-product [set1 set2]
+  (set (apply concat
+           (for [v1 set1]
+             (for [v2 set2]
+               [v1 v2])))))
+
+(= (cartesian-product #{"ace" "king" "queen"} #{"♠" "♥" "♦" "♣"})
+    #{["ace"   "♠"] ["ace"   "♥"] ["ace"   "♦"] ["ace"   "♣"]
+      ["king"  "♠"] ["king"  "♥"] ["king"  "♦"] ["king"  "♣"]
+      ["queen" "♠"] ["queen" "♥"] ["queen" "♦"] ["queen" "♣"]})
+
+(= (cartesian-product #{1 2 3} #{4 5})
+    #{[1 4] [2 4] [3 4] [1 5] [2 5] [3 5]})
+
+(= 300 (count (cartesian-product (into #{} (range 10))
+                  (into #{} (range 30)))))
+
+;; My solution to 4Clojure problem #91.  (Not solved).
+;; My solution to 4Clojure problem #92.  (Not solved).
+
+;; My solution to 4Clojure problem #93.
 
 
