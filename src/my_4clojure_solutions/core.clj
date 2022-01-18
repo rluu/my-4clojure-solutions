@@ -1045,6 +1045,14 @@
       (filter #(not= \- %))
       (apply str))))
 
+(defn into-camelcase [input-str]
+  (let [words (clojure.string/split input-str #"-")
+        head (first words)
+        body (rest words)]
+    (->> body
+         (map #(clojure.string/capitalize %))
+         (apply str head))))
+
 (= (into-camelcase "something") "something")
 (= (into-camelcase "multi-word-key") "multiWordKey")
 (= (into-camelcase "leaveMeAlone") "leaveMeAlone")
@@ -1064,4 +1072,128 @@
 (first "ryan") ;; Return first character of a string.
 
 ;; My solution to 4Clojure problem #103.
+(defn k-combos [k input-set]
+  (if (or (> k (count input-set)) (< k 1))
+    #{}
+    (letfn [(permutations [s]
+              (lazy-seq
+                (if (seq (rest s))
+                  (apply concat (for [x s]
+                                  (map #(cons x %) (permutations (remove #{x} s)))))
+                  [s])))]
+
+      ;;(println "permutations are: " (permutations (apply vector input-set)))
+
+      (as-> input-set v
+        ;; Turn the set into a vector.
+        (apply vector v)
+        ;; Get all permutations of the vector.
+        (permutations v)
+        ;; Take only the first k values of each of the permutations.
+        (map #(set (take k %)) v)
+        ;; Convert the list into a set to remove duplicates.
+        (set v)))))
+
+;; Another solution to problem #103 that utilizes my power-set implementation from problem #85.
+(defn k-combos [k input-set]
+  (letfn [(power-set [input-set]
+            (if (empty? input-set)
+              #{#{}}
+              (let [ps (power-set (rest input-set))
+                    first-value (first input-set)]
+                (into ps (map #(conj % first-value) ps)))))]
+    (->> input-set
+      (power-set)
+      (filter #(= k (count %)))
+      (set))))
+
+(= (k-combos 1 #{4 5 6}) #{#{4} #{5} #{6}})
+(= (k-combos 10 #{4 5 6}) #{})
+(= (k-combos 2 #{0 1 2}) #{#{0 1} #{0 2} #{1 2}})
+(= (k-combos 3 #{0 1 2 3 4}) #{#{0 1 2} #{0 1 3} #{0 1 4} #{0 2 3} #{0 2 4}
+                                     #{0 3 4} #{1 2 3} #{1 2 4} #{1 3 4} #{2 3 4}})
+(= (k-combos 4 #{[1 2 3] :a "abc" "efg"}) #{#{[1 2 3] :a "abc" "efg"}})
+(= (k-combos 2 #{[1 2 3] :a "abc" "efg"}) #{#{[1 2 3] :a} #{[1 2 3] "abc"} #{[1 2 3] "efg"}
+                                                  #{:a "abc"} #{:a "efg"} #{"abc" "efg"}})
+
+;; My solution to 4Clojure problem #104.
+;;
+;; The symbols V, L, D are never repeated in a Roman number.
+;; Don’t Repeat More Than Three Times
+;;
+;; This solution passes all the test cases on the JVM, but for some
+;; unknown reason, it is having errors when running on the 4Clojure website
+;; using the Javascript Clojurescript interpreter.
+;;
+(defn write-roman-numeral
+  ([input-int]
+   (letfn [(write-roman-numeral-recursive [input-int original-input-int]
+             (let [pre-result (cond
+                                (nil? input-int) nil
+                                (neg? input-int) nil
+                                (>= input-int 1000) (str "M" (write-roman-numeral-recursive (- input-int 1000) original-input-int))
+                                (>= input-int 500) (str "D" (write-roman-numeral-recursive (- input-int 500) original-input-int))
+                                (>= input-int 100) (str "C" (write-roman-numeral-recursive (- input-int 100) original-input-int))
+                                (>= input-int 50) (str "L" (write-roman-numeral-recursive (- input-int 50) original-input-int))
+                                (>= input-int 10) (str "X" (write-roman-numeral-recursive (- input-int 10) original-input-int))
+                                (>= input-int 5) (str "V" (write-roman-numeral-recursive (- input-int 5) original-input-int))
+                                (>= input-int 1) (str "I" (write-roman-numeral-recursive (- input-int 1) original-input-int))
+                                (= input-int 0) (str ""))
+                   completed-recursion (= input-int original-input-int)]
+
+               (if-not completed-recursion
+                 pre-result
+                 (if (nil? pre-result)
+                   nil
+                   (do
+                     ; (println pre-result)
+                     (-> pre-result
+                         (clojure.string/replace #"DCCCC" "CM")
+                         (clojure.string/replace #"CCCC" "CD")
+                         (clojure.string/replace #"LXXXX" "XC")
+                         (clojure.string/replace #"XXXX" "XL")
+                         (clojure.string/replace #"VIIII" "IX")
+                         (clojure.string/replace #"IIII" "IV")
+                         (identity)
+                         ))))))]
+     (write-roman-numeral-recursive input-int input-int))))
+
+
+(= "I" (write-roman-numeral 1))
+(= "I" (write-roman-numeral 1))
+(= "XXX" (write-roman-numeral 30))
+(= "IV" (write-roman-numeral 4))
+(= "CXL" (write-roman-numeral 140))
+(= "DCCCXXVII" (write-roman-numeral 827))
+(= "MMMCMXCIX" (write-roman-numeral 3999))
+(= "XLVIII" (write-roman-numeral 48))
+
+
+;; My solution to 4Clojure problem #105.
+(defn identify-keys-and-values [input-vector]
+  (loop [last-keyword nil
+         remaining input-vector
+         result {}]
+    (if (empty? remaining)
+      result
+      (let [curr (first remaining)]
+        (if (keyword? curr)
+          (recur curr (rest remaining) (merge-with into result {curr []}))
+          (recur last-keyword (rest remaining) (merge-with into result {last-keyword [curr]}))
+          )))))
+
+(second [])
+
+(= {} (identify-keys-and-values []))
+(= {:a [1]} (identify-keys-and-values [:a 1]))
+(= {:a [1]
+    :b [2]} (identify-keys-and-values [:a 1, :b 2]))
+(= {:a [1 2 3]
+    :b []
+    :c [4]} (identify-keys-and-values [:a 1 2 3 :b :c 4]))
+
+;; My solution to 4Clojure problem #106.  (Not solved).
+
+;; My solution to 4Clojure problem #107.
+
 
