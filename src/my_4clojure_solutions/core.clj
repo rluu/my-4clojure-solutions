@@ -1195,5 +1195,63 @@
 ;; My solution to 4Clojure problem #106.  (Not solved).
 
 ;; My solution to 4Clojure problem #107.
+(defn simple-clojure [n]
+  (let [pow (fn [x n]
+              (loop [acc 1
+                     n n]
+                (if (zero? n)
+                  acc
+                  (recur (* x acc) (dec n)))))]
+    (fn [x] (pow x n))))
 
+(defn simple-clojure [n]
+  #(apply * (repeat n %)))
+
+(= 256 ((simple-clojure 2) 16), ((simple-clojure 8) 2))
+(= [1 8 27 64] (map (simple-clojure 3) [1 2 3 4]))
+(= [1 2 4 8 16] (map #((simple-clojure %) 2) [0 1 2 3 4]))
+
+;; My solution to 4Clojure problem #108.
+;;
+;; Note: This works fine on the JVM but causes the browser to hang
+;; when running the test cases on the 4Clojure website with Clojurescript.
+(defn lazy-search [& args]
+  (loop [args args
+         computed-min nil]
+    (if (nil? computed-min)
+      (recur args (apply min (map first args)))
+      (if (apply = (map first args))
+        (ffirst args)
+        (recur (map #(if (and (seq %) (= computed-min (first %)))
+                       (drop 1 %)
+                       %)
+                    args)
+               nil)))))
+
+(= 3 (lazy-search [3 4 5]))
+(= 4 (lazy-search [1 2 3 4 5 6 7] [0.5 3/2 4 19]))
+(= 64 (lazy-search (map #(* % % %) (range))
+                                  (filter #(zero? (bit-and % (dec %))) (range))
+                                  (iterate inc 20)))
+(= 7 (lazy-search (range) (range 0 100 7/6) [2 3 5 7 11 13]))
+
+
+(if (seq nil) true false) ;; false
+(if (seq '()) true false) ;; false
+(if (seq []) true false) ;; false
+(if (seq [1]) true false) ;; true
+(seq '())  ;; => nil
+(seq '(1)) ;; => (1)
+(seq [])   ;; => nil
+(seq [1])  ;; => (1)
+(seq nil)  ;; => nil
+(peek)
+(get 1 [1234 54321])
+(nth [] 0) ;; => IndexOutOfBoundsException
+(nth '() 0) ;; => IndexOutOfBoundsException
+(nth [1 2 3] 0) ;; => 1
+(nth '(1 2 3) 0) ;; => 1
+(= 3 nil) ;; false
+
+;; My solution to 4Clojure problem #110.
 
