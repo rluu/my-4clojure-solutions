@@ -1254,4 +1254,39 @@
 (= 3 nil) ;; false
 
 ;; My solution to 4Clojure problem #110.
+(defn pronunciations
+  ([input-vector]
+   (lazy-seq 
+     (loop [integers input-vector
+            result-vector []]
+       ; (println "--------------")
+       (if (empty? integers)
+         (do
+           ; (println "Completed.  result-vector is: " result-vector)
+           (cons result-vector (pronunciations result-vector)))
+         (let [value (first integers)
+               amount (count (take-while #(= value %) integers))]
+           ; (println "integers" integers)
+           ; (println "result-vector" result-vector)
+           ; (println "value" value)
+           ; (println "amount" amount)
+           (recur (drop amount integers) (conj result-vector amount value))
+           ))))))
+
+;; A smaller, probably more idiomatic solution.
+(defn pronounce-all 
+  [coll]
+  (letfn [(pronounce [coll] (mapcat (juxt count first)
+                                    (partition-by identity coll)))]
+    (iterate pronounce (pronounce coll))))
+
+(= [[1 1] [2 1] [1 2 1 1]] (take 3 (pronunciations [1])))
+(= [3 1 2 4] (first (pronunciations[1 1 1 4 4])))
+(= [1 1 1 3 2 1 3 2 1 1] (nth (pronunciations [1]) 6))
+(= 338 (count (nth (pronunciations [3 2]) 15)))
+
+
+;; My solution to 4Clojure problem #111.  (Not solved).
+
+;; My solution to 4Clojure problem #112.
 
