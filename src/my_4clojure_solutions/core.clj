@@ -1289,4 +1289,41 @@
 ;; My solution to 4Clojure problem #111.  (Not solved).
 
 ;; My solution to 4Clojure problem #112.
+(defn sequs [max-sum 
+             nested-vector]
+  (letfn [(compute [max-sum
+                    curr-sum
+                    remaining-structure
+                    result]
+            (if (empty? remaining-structure)
+              [result false]
+              (do
+                (if (sequential? (first remaining-structure))
+                  (let [inner-structure (first remaining-structure)
+                        [intermediate-result is-done] (compute (- max-sum curr-sum) 0 inner-structure [])
+                        intermediate-result-sum (reduce + (flatten intermediate-result))
+                        new-curr-sum (+ curr-sum intermediate-result-sum)]
+                    (if is-done
+                      [(conj result intermediate-result) is-done]
+                      (compute max-sum new-curr-sum (rest remaining-structure) (conj result intermediate-result))
+                      )
+                    )
+                  (let [new-sum (+ curr-sum (first remaining-structure))]
+                    (if (>= max-sum new-sum)
+                      (compute max-sum new-sum (rest remaining-structure) (conj result (first remaining-structure)))
+                      [result true]))))))]
+    (let [[result is-done] (compute max-sum 0 nested-vector [])]
+      result)))
+
+(=  (sequs 10 [1 2 [3 [4 5] 6] 7])    '(1 2 (3 (4))))
+(=  (sequs 30 [1 2 [3 [4 [5 [6 [7 8]] 9]] 10] 11])    '(1 2 (3 (4 (5 (6 (7)))))))
+(=  (sequs 9 (range))    '(0 1 2 3))
+(=  (sequs 1 [[[[[1]]]]])    '(((((1))))))
+(=  (sequs 0 [1 2 [3 [4 5] 6] 7])    '())
+(=  (sequs 0 [0 0 [0 [0]]])    '(0 0 (0 (0))))
+(=  (sequs 1 [-10 [1 [2 3 [4 5 [6 7 [8]]]]]])
+                        '(-10 (1 (2 3 (4)))))
+
+
+;; My solution to 4Clojure problem #114.
 
